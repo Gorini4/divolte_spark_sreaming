@@ -1,0 +1,37 @@
+version: "3.3"
+services:
+
+  # Kafka/Zookeeper container
+  kafka:
+    image: krisgeus/docker-kafka
+    environment:
+      LOG_RETENTION_HOURS: 1
+      AUTO_CREATE_TOPICS: "true"
+      KAFKA_CREATE_TOPICS: divolte:4:1
+      ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,INTERNAL://localhost:9093
+      LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:9093
+      SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+      INTER_BROKER: INTERNAL
+    ports:
+      - 9092:9092
+      - 2181:2181
+
+  # Divolte container
+  divolte:
+    image: divolte/divolte-collector
+    environment:
+      DIVOLTE_KAFKA_BROKER_LIST: kafka:9092
+    ports:
+      - 8290:8290
+    depends_on:
+      - kafka
+
+  # Postgres container
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USER=consumer
+      - POSTGRES_DB=consumer
+      - POSTGRES_PASSWORD=goto@Postgres1
+    ports:
+      - "5432:5432"
